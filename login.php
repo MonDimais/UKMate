@@ -1,35 +1,9 @@
 <?php
-// Mulai session
 session_start();
-include "db_connect.php";
-$conn = db_connect();
-
-$error = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $username = trim($_POST['username'] ?? '');
-  $password = $_POST['password'] ?? '';
-
-  // Query user
-  $stmt = $conn->prepare("SELECT password FROM users WHERE username = ?");
-  $stmt->bind_param("s", $username);
-  $stmt->execute();
-  $stmt->store_result();
-  if ($stmt->num_rows === 1) {
-    $stmt->bind_result($hashed_password);
-    $stmt->fetch();
-    if (password_verify($password, $hashed_password)) {
-      $_SESSION['username'] = $username;
-      $_SESSION['login'] = true;
-      header("Location: dashboard.php");
-      exit;
-    } else {
-      $error = "Username atau password salah.";
-    }
-  }
-  
-  $stmt->close();
-}
+$error = $_SESSION['login_error'] ?? '';
+unset($_SESSION['login_error']);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,31 +11,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sign in to UKMate</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Shared styles for consistent sizing */
+    .card-container {
+      height: 600px;
+    }
+    .form-card {
+      height: 100%;
+    }
+    .form-container {
+      min-height: 320px;
+    }
+  </style>
 </head>
-<body class="bg-gray-900 flex items-center justify-center min-h-screen">
-  <div class="bg-gray-800 border border-gray-700 p-8 rounded-lg w-80 shadow-lg">
-  <h2 class="text-center text-2xl font-normal text-white mb-6">Sign in to UKMate</h2>
-  <?php if ($error): ?>
-    <div class="bg-red-500 text-white text-sm rounded px-3 py-2 mb-4 text-center">
-    <?= htmlspecialchars($error) ?>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <div class="flex max-w-5xl w-full mx-auto shadow-lg rounded-lg overflow-hidden card-container">
+    <!-- Left card - Greeting/Introduction -->
+    <div class="bg-gradient-to-b from-gray-800 to-gray-900 text-white p-12 w-1/2 relative overflow-hidden">
+      <div class="relative z-10">
+        <h1 class="text-5xl font-bold mb-6">JOIN UKMATE</h1>
+        
+        <p class="text-xl mb-8">
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit. 
+          Voluptatum dolor accusamus cumque, quo quaerat dolorem placeat pariatur, labore maxime natus quis vitae architecto praesentium quam. 
+          Hic, blanditiis aspernatur? Natus, ipsam.
+        </p>
+      </div>
     </div>
-  <?php endif; ?>
-  <form method="POST" action="login.php">
-    <label for="username" class="block text-sm mb-1 mt-3 text-gray-200">Username</label>
-    <input type="text" id="username" name="username" required
-    class="w-full px-3 py-2 rounded bg-gray-900 border border-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+    
+    <!-- Right card - Login form -->
+    <div class="bg-white p-12 w-1/2 relative flex flex-col form-card">
+      <h2 class="text-3xl font-bold text-gray-900 mb-8">Log In</h2>
+      
+      <?php if ($error): ?>
+        <div class="bg-red-500 text-white text-sm rounded px-3 py-2 mb-4 text-center">
+        <?= htmlspecialchars($error) ?>
+        </div>
+      <?php endif; ?>
+      
+      <div class="form-container">
+        <form method="POST" action="login_proccess.php">
+          <div class="mb-4">
+            <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+            <input type="text" id="username" name="username" required
+            class="w-full px-3 py-2 rounded border border-gray-300 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
 
-    <label for="password" class="block text-sm mb-1 mt-4 text-gray-200">Password</label>
-    <input type="password" id="password" name="password" required
-    class="w-full px-3 py-2 rounded bg-gray-900 border border-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <div class="mb-4">
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input type="password" id="password" name="password" required
+            class="w-full px-3 py-2 rounded border border-gray-300 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
 
-    <button type="submit"
-    class="w-full py-2 mt-6 bg-green-600 hover:bg-green-700 text-white font-bold rounded transition">Sign in</button>
-  </form>
-  <div class="text-center mt-6 text-sm text-gray-300">
-    New to UKMate?
-    <a href="register.php" class="text-blue-400 hover:underline">Create an account</a>
-  </div>
+          <button type="submit"
+          class="w-full py-3 bg-cyan-400 hover:bg-cyan-500 text-black font-bold rounded transition">Next</button>
+        </form>
+      </div>
+      
+      <div class="mt-auto">
+        <div class="flex items-center my-6">
+          <div class="flex-grow border-t border-gray-300"></div>
+          <span class="px-4 text-gray-500">or</span>
+          <div class="flex-grow border-t border-gray-300"></div>
+        </div>
+        
+        <div class="text-center">
+          <span class="text-gray-700">Become a member</span>
+          <a href="register.php" class="text-green-500 hover:underline font-bold ml-2">Join UKMate</a>
+        </div>
+      </div>
+    </div>
   </div>
 </body>
 </html>

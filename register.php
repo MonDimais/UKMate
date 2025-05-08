@@ -1,44 +1,9 @@
 <?php
-include 'db_connect.php';
-$conn = db_connect();
-
-function createUser($username, $password, $conn) {
-  $username = $conn->real_escape_string($username);
-
-  // Cek apakah username sudah ada
-  $check = $conn->prepare("SELECT id_user FROM users WHERE username = ?");
-  $check->bind_param("s", $username);
-  $check->execute();
-  $check->store_result();
-  if ($check->num_rows > 0) {
-      return false; // Username sudah ada
-  }
-
-  // Insert user baru jika belum ada
-  $hash = password_hash($password, PASSWORD_DEFAULT);
-  $insert = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-  $insert->bind_param("ss", $username, $hash);
-  return $insert->execute();
-}
-
-
-$errorMsg = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $confirm  = $_POST['confirm'] ?? '';
-    if ($password !== $confirm) {
-        $errorMsg = "Passwords do not match.";
-    } else {
-        if (createUser($username, $password, $conn)) {
-            header("Location: login.php");
-            exit;
-        } else {
-            $errorMsg = "Username already exists or error occurred.";
-        }
-    }
-}
+session_start();
+$errorMsg = $_SESSION['register_error'] ?? '';
+unset($_SESSION['register_error']);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,31 +11,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Register to UKMate</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Shared styles for consistent sizing */
+    .card-container {
+      height: 600px;
+    }
+    .form-card {
+      height: 100%;
+    }
+    .form-container {
+      min-height: 320px;
+    }
+  </style>
 </head>
-<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
-  <div class="bg-gray-800 border border-gray-700 p-8 rounded-lg w-full max-w-sm">
-    <h2 class="mb-6 text-center text-2xl font-normal">Create your UKMate account</h2>
-    <form id="registerForm" method="POST" action="" onsubmit="return validatePasswords()">
-      <label for="username" class="block text-sm mb-1 mt-3">Username</label>
-      <div class="relative">
-        <input type="text" id="username" name="username" required oninput="checkUsername()"
-          class="w-full px-3 py-2 border border-gray-700 rounded bg-gray-900 text-white text-sm focus:outline-none focus:border-blue-500" />
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <div class="flex max-w-5xl w-full mx-auto shadow-lg rounded-lg overflow-hidden card-container">
+    <!-- Left card - Greeting/Introduction -->
+    <div class="bg-gradient-to-b from-gray-800 to-gray-900 text-white p-12 w-1/2 relative overflow-hidden">
+      <div class="relative z-10">
+        <h1 class="text-5xl font-bold mb-6">JOIN UKMATE</h1>
+        
+        <p class="text-xl mb-8">
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit. 
+          Voluptatum dolor accusamus cumque, quo quaerat dolorem placeat pariatur, labore maxime natus quis vitae architecto praesentium quam. 
+          Hic, blanditiis aspernatur? Natus, ipsam.
+        </p>
+      </div>
+    </div>
+    
+    <!-- Right card - Registration form -->
+    <div class="bg-white p-12 w-1/2 relative flex flex-col form-card">
+      <h2 class="text-3xl font-bold text-gray-900 mb-8">Create Account</h2>
+      
+      <div class="form-container">
+        <form id="registerForm" method="POST" action="register_proccess.php" onsubmit="return validatePasswords()">
+          <div class="mb-4">
+            <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+            <div class="relative">
+              <input type="text" id="username" name="username" required oninput="checkUsername()"
+                class="w-full px-3 py-2 border border-gray-300 rounded text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <span id="checkmark" class="absolute right-3 top-2.5 text-green-500 hidden">✓</span>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input type="password" id="password" name="password" required
+              class="w-full px-3 py-2 border border-gray-300 rounded text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+
+          <div class="mb-4">
+            <label for="confirm" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+            <input type="password" id="confirm" name="confirm" required
+              class="w-full px-3 py-2 border border-gray-300 rounded text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          
+          <div class="text-red-500 text-xs mb-4" id="errorMsg"><?php echo htmlspecialchars($errorMsg); ?></div>
+
+          <button type="submit" class="w-full py-3 bg-cyan-400 hover:bg-cyan-500 rounded text-black font-bold transition">
+            Create Account
+          </button>
+        </form>
       </div>
 
-      <label for="password" class="block text-sm mb-1 mt-3">Password</label>
-      <input type="password" id="password" name="password" required
-        class="w-full px-3 py-2 border border-gray-700 rounded bg-gray-900 text-white text-sm focus:outline-none focus:border-blue-500" />
-
-      <label for="confirm" class="block text-sm mb-1 mt-3">Confirm Password</label>
-      <input type="password" id="confirm" name="confirm" required
-        class="w-full px-3 py-2 border border-gray-700 rounded bg-gray-900 text-white text-sm focus:outline-none focus:border-blue-500" />
-      <div class="text-red-500 text-xs mt-1" id="errorMsg"><?php echo htmlspecialchars($errorMsg); ?></div>
-
-      <button type="submit" class="w-full py-2 mt-6 bg-green-600 hover:bg-green-700 rounded text-white font-bold text-sm transition">Create account</button>
-    </form>
-
-    <div class="text-center mt-6 text-sm">
-      Already have an account? <a href="login.php" class="text-blue-400 hover:underline">Sign in</a>
+      <div class="mt-auto">
+        <div class="flex items-center my-6">
+          <div class="flex-grow border-t border-gray-300"></div>
+          <span class="px-4 text-gray-500">or</span>
+          <div class="flex-grow border-t border-gray-300"></div>
+        </div>
+        
+        <div class="text-center">
+          <span class="text-gray-700">Already have an account?</span>
+          <a href="login.php" class="text-green-500 hover:underline font-bold ml-2">Sign in</a>
+        </div>
+      </div>
     </div>
   </div>
 
