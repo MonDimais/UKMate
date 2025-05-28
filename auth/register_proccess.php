@@ -26,16 +26,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if ($password !== $confirm) {
     $_SESSION['register_error'] = "Passwords do not match.";
-    header("Location: register.php");
+    header("Location: ../register.php");
     exit;
   }
 
   if (createUser($username, $password, $conn)) {
-    header("Location: login.php");
+    $_SESSION['register_success'] = "Registrasi berhasil! Silakan login untuk melanjutkan.";
+    header("Location: ../register.php");
     exit;
   } else {
     $_SESSION['register_error'] = "Username already exists or error occurred.";
-    header("Location: register.php");
+    header("Location: ../register.php");
     exit;
   }
 }
