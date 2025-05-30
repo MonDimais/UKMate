@@ -24,32 +24,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $_SESSION['role'] = $role;
       $_SESSION['login'] = true;
 
-      if ($role === 'Admin') {
-        header("Location: ../dashboard_admin.php");
-        exit;
-      }
-
-      // Cek apakah user sudah mendaftar di tabel pendaftaran (berdasarkan id_user)
+      // Cek apakah user (termasuk admin) sudah mendaftar di tabel pendaftaran
       $stmt2 = $conn->prepare("SELECT status FROM pendaftaran WHERE id_user = ?");
       $stmt2->bind_param("i", $id_user);
       $stmt2->execute();
       $result2 = $stmt2->get_result();
 
       if ($result2->num_rows === 0) {
-        // Belum daftar → ke halaman pendaftaran
+        // Belum mendaftar sebagai anggota → ke halaman pendaftaran
         header("Location: ../pendaftaran.php");
+        exit;
       } else {
         $row = $result2->fetch_assoc();
         $status = strtolower($row['status']);
 
-        // Arahkan sesuai status
+        // Jika admin dan statusnya diterima, arahkan ke halaman pilihan
+        if ($role === 'Admin' && $status === 'diterima') {
+          header("Location: ../admin_choice.php");
+          exit;
+        }
+
+        // Untuk user biasa atau admin dengan status selain diterima
         if ($status === 'pending') {
           header("Location: ../pending.php");
         } elseif ($status === 'ditolak') {
           header("Location: ../rejected.php");
         } elseif ($status === 'diterima') {
           $_SESSION['login_success'] = "Berhasil login! Selamat datang kembali.";
-          header("Location: ../login.php");
+          header("Location: ../login.php"); // Ganti dari login.php ke dashboard user
         } else {
           $_SESSION['login_error'] = "Status tidak dikenali.";
           header("Location: ../login.php");
