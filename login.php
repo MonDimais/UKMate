@@ -170,7 +170,7 @@ unset($_SESSION['login_error']);
     </div>
     <script>
       function redirectToDashboard() {
-        window.location.href = 'dashboard.php';
+        window.location.href = 'Anggota/dashboard.php';
       }
 
       // Auto-redirect in 5 seconds if user doesn't click

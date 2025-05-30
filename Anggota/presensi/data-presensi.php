@@ -4,8 +4,88 @@ date_default_timezone_set('Asia/Jakarta');
 session_start();
 include '../koneksi.php';
 
+// Cek apakah user sudah login
+if (!isset($_SESSION['id_user'])) {
+    header("Location: ../login.php");
+    exit();
+}
+
+$id_user = $_SESSION['id_user'];
+
 // Waktu sekarang
 $current_time = date('Y-m-d H:i:s');
+
+// Fungsi untuk mendapatkan id_anggota dari id_user
+function getIdAnggota($koneksi, $id_user) {
+    // Ambil id_pendaftaran dari tabel pendaftaran
+    $sql_pendaftaran = "SELECT id_pendaftaran FROM pendaftaran WHERE id_user = $id_user LIMIT 1";
+    $result_pendaftaran = mysqli_query($koneksi, $sql_pendaftaran);
+    
+    if ($result_pendaftaran && mysqli_num_rows($result_pendaftaran) > 0) {
+        $row_pendaftaran = mysqli_fetch_assoc($result_pendaftaran);
+        $id_pendaftaran = $row_pendaftaran['id_pendaftaran'];
+        
+        // Ambil id_anggota dari tabel anggota
+        $sql_anggota = "SELECT id_anggota FROM anggota WHERE id_pendaftaran = $id_pendaftaran LIMIT 1";
+        $result_anggota = mysqli_query($koneksi, $sql_anggota);
+        
+        if ($result_anggota && mysqli_num_rows($result_anggota) > 0) {
+            $row_anggota = mysqli_fetch_assoc($result_anggota);
+            return $row_anggota['id_anggota'];
+        }
+    }
+    return null;
+}
+
+// Mendapatkan id_anggota user yang login
+$id_anggota = getIdAnggota($koneksi, $id_user);
+
+// Handle form presensi
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_presensi'])) {
+    $id_kegiatan = (int)$_POST['id_kegiatan'];
+    $status_presensi = mysqli_real_escape_string($koneksi, $_POST['status_presensi']);
+    
+    if ($id_anggota) {
+        // Cek apakah sudah ada presensi
+        $sql_cek = "SELECT id_presensi, presensi FROM presensi WHERE id_kegiatan = $id_kegiatan AND id_anggota = $id_anggota";
+        $result_cek = mysqli_query($koneksi, $sql_cek);
+        
+        if (mysqli_num_rows($result_cek) == 0) {
+            // Insert presensi baru
+            $sql_insert = "INSERT INTO presensi (id_kegiatan, id_anggota, presensi, waktu_presensi) 
+                          VALUES ($id_kegiatan, $id_anggota, '$status_presensi', '$current_time')";
+            
+            if (mysqli_query($koneksi, $sql_insert)) {
+                header("Location: ?message=Presensi berhasil disimpan&type=success");
+                exit();
+            } else {
+                header("Location: ?message=Gagal menyimpan presensi&type=error");
+                exit();
+            }
+        } else {
+            $row_cek = mysqli_fetch_assoc($result_cek);
+            if ($row_cek['presensi'] == NULL) {
+                // Update presensi jika masih NULL
+                $sql_update = "UPDATE presensi SET presensi = '$status_presensi', waktu_presensi = '$current_time' 
+                              WHERE id_kegiatan = $id_kegiatan AND id_anggota = $id_anggota";
+                
+                if (mysqli_query($koneksi, $sql_update)) {
+                    header("Location: ?message=Presensi berhasil disimpan&type=success");
+                    exit();
+                } else {
+                    header("Location: ?message=Gagal menyimpan presensi&type=error");
+                    exit();
+                }
+            } else {
+                header("Location: ?message=Anda sudah melakukan presensi untuk kegiatan ini&type=warning");
+                exit();
+            }
+        }
+    } else {
+        header("Location: ?message=Anda belum terdaftar sebagai anggota&type=error");
+        exit();
+    }
+}
 
 // Filter pencarian dan urut
 $search = isset($_GET['search']) ? mysqli_real_escape_string($koneksi, $_GET['search']) : '';
@@ -37,46 +117,22 @@ if (!$query) {
 // Hitung total kegiatan
 $total_kegiatan = mysqli_num_rows($query);
 
-// Simpan data ke array (TIDAK PERLU mysqli_data_seek)
+// Simpan data ke array
 $kegiatan_data = [];
 while ($row = mysqli_fetch_assoc($query)) {
     $kegiatan_data[] = $row;
 }
 
-// Presensi handling
-$id_kegiatan = isset($_GET['id_kegiatan']) ? (int)$_GET['id_kegiatan'] : 0;
-
-if ($id_kegiatan > 0) {
-    $sql_presensi = "
-        SELECT anggota.nama, presensi.waktu_presensi 
-        FROM presensi 
-        JOIN anggota ON presensi.id_anggota = anggota.id_anggota 
-        WHERE presensi.id_kegiatan = $id_kegiatan AND presensi.hadir = 1
-    ";
-    
-    $presensi = mysqli_query($koneksi, $sql_presensi);
-    
-    if (!$presensi) {
-        die("Presensi Query Error: " . mysqli_error($koneksi));
-    }
-} else {
-    $presensi = false;
-}
-
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin | UKM Fasilkom</title>
+    <title>Dashboard Anggota | UKM Fasilkom</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="flex h-screen">
@@ -105,7 +161,6 @@ if ($id_kegiatan > 0) {
             <?= $message ?>
         </div>
         <?php endif; ?>
-
 
             <!-- Navbar -->
             <?php include '../navbar.php'; ?>
@@ -156,12 +211,24 @@ if ($id_kegiatan > 0) {
                             <h3 class="text-lg font-semibold">Total Kegiatan: <?= $total_kegiatan ?></h3>
                         </div>
                     </div>
-                </div> <!-- Pastikan div ini ditutup dengan benar -->
+                </div>
 
                 <!-- Kegiatan List -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                     <?php if (count($kegiatan_data) > 0): ?>
                         <?php foreach ($kegiatan_data as $row): ?>
+                            <?php
+                            // Cek status presensi user untuk kegiatan ini
+                            $user_presensi_status = null;
+                            if ($id_anggota) {
+                                $sql_cek_user = "SELECT presensi FROM presensi WHERE id_kegiatan = {$row['id_kegiatan']} AND id_anggota = $id_anggota";
+                                $result_cek_user = mysqli_query($koneksi, $sql_cek_user);
+                                if ($result_cek_user && mysqli_num_rows($result_cek_user) > 0) {
+                                    $row_user = mysqli_fetch_assoc($result_cek_user);
+                                    $user_presensi_status = $row_user['presensi'];
+                                }
+                            }
+                            ?>
                             <div 
                                 class="cursor-pointer bg-white rounded-lg shadow p-4 hover:shadow-lg transition"
                                 onclick="openModal(<?= $row['id_kegiatan'] ?>)"
@@ -175,6 +242,15 @@ if ($id_kegiatan > 0) {
                                         <?= htmlspecialchars($row['status'] ?? '') ?>
                                     </span>
                                 </p>
+                                <?php if ($user_presensi_status): ?>
+                                    <p class="text-gray-500 mt-2"><strong>Presensi Anda:</strong> 
+                                        <span class="px-2 py-1 rounded-full text-xs font-semibold
+                                            <?= $user_presensi_status == 'Hadir' ? 'bg-green-100 text-green-800' : 
+                                                ($user_presensi_status == 'Izin' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') ?>">
+                                            <?= htmlspecialchars($user_presensi_status) ?>
+                                        </span>
+                                    </p>
+                                <?php endif; ?>
                             </div>
 
                             <!-- Modal -->
@@ -197,6 +273,47 @@ if ($id_kegiatan > 0) {
                                             </span>
                                         </p>
                                     </div>
+
+                                    <!-- Form Presensi untuk User -->
+                                    <?php if ($id_anggota && $row['status'] == 'Berlangsung'): ?>
+                                        <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                                            <h3 class="text-lg font-semibold mb-2">Presensi Anda</h3>
+                                            <?php if ($user_presensi_status == null): ?>
+                                                <form method="POST" action="">
+                                                    <input type="hidden" name="id_kegiatan" value="<?= $row['id_kegiatan'] ?>">
+                                                    <div class="flex gap-2 mb-3">
+                                                        <label class="flex items-center cursor-pointer">
+                                                            <input type="radio" name="status_presensi" value="Hadir" required class="mr-2">
+                                                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full">Hadir</span>
+                                                        </label>
+                                                        <label class="flex items-center cursor-pointer">
+                                                            <input type="radio" name="status_presensi" value="Izin" required class="mr-2">
+                                                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full">Izin</span>
+                                                        </label>
+                                                        <label class="flex items-center cursor-pointer">
+                                                            <input type="radio" name="status_presensi" value="Tidak Hadir" required class="mr-2">
+                                                            <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full">Tidak Hadir</span>
+                                                        </label>
+                                                    </div>
+                                                    <button type="submit" name="submit_presensi" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                                                        Kirim Presensi
+                                                    </button>
+                                                </form>
+                                            <?php else: ?>
+                                                <p class="text-gray-600">Anda sudah melakukan presensi: 
+                                                    <span class="px-2 py-1 rounded-full text-xs font-semibold
+                                                        <?= $user_presensi_status == 'Hadir' ? 'bg-green-100 text-green-800' : 
+                                                            ($user_presensi_status == 'Izin' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') ?>">
+                                                        <?= htmlspecialchars($user_presensi_status) ?>
+                                                    </span>
+                                                </p>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php elseif (!$id_anggota): ?>
+                                        <div class="mt-4 p-4 bg-yellow-50 rounded-lg">
+                                            <p class="text-yellow-800">Anda belum terdaftar sebagai anggota. Silakan daftar terlebih dahulu untuk melakukan presensi.</p>
+                                        </div>
+                                    <?php endif; ?>
 
                                     <!-- Daftar Presensi -->
                                     <?php
@@ -228,7 +345,7 @@ if ($id_kegiatan > 0) {
                                             presensi,
                                             COUNT(*) as jumlah
                                         FROM presensi
-                                        WHERE id_kegiatan = $id_kegiatan
+                                        WHERE id_kegiatan = $id_kegiatan AND presensi IS NOT NULL
                                         GROUP BY presensi
                                     ";
                                     $result_stats = mysqli_query($koneksi, $sql_stats);
@@ -243,22 +360,6 @@ if ($id_kegiatan > 0) {
 
                                     <div class="mt-6">
                                         <h3 class="text-lg font-semibold mb-2">Daftar Kehadiran</h3>
-                                        
-                                        <!-- Statistik Presensi -->
-                                        <div class="grid grid-cols-3 gap-2 mb-4">
-                                            <div class="bg-green-50 border border-green-200 rounded p-2 text-center">
-                                                <p class="text-sm text-green-800 font-semibold">Hadir</p>
-                                                <p class="text-xl font-bold text-green-600"><?= $stats['Hadir'] ?></p>
-                                            </div>
-                                            <div class="bg-yellow-50 border border-yellow-200 rounded p-2 text-center">
-                                                <p class="text-sm text-yellow-800 font-semibold">Izin</p>
-                                                <p class="text-xl font-bold text-yellow-600"><?= $stats['Izin'] ?></p>
-                                            </div>
-                                            <div class="bg-red-50 border border-red-200 rounded p-2 text-center">
-                                                <p class="text-sm text-red-800 font-semibold">Tidak Hadir</p>
-                                                <p class="text-xl font-bold text-red-600"><?= $stats['Tidak Hadir'] ?></p>
-                                            </div>
-                                        </div>
                                         
                                         <!-- Tabel Presensi -->
                                         <div class="overflow-x-auto">
@@ -277,12 +378,13 @@ if ($id_kegiatan > 0) {
                                                     $no = 1; 
                                                     if ($result_presensi && mysqli_num_rows($result_presensi) > 0):
                                                         while ($p = mysqli_fetch_assoc($result_presensi)): 
+                                                            if ($p['status_presensi'] != null):
                                                     ?>
                                                         <tr class="hover:bg-gray-50">
                                                             <td class="border px-4 py-2"><?= $no++ ?></td>
                                                             <td class="border px-4 py-2"><?= htmlspecialchars($p['nama'] ?? '') ?></td>
                                                             <td class="border px-4 py-2"><?= htmlspecialchars($p['npm'] ?? '') ?></td>
-                                                            <td class="border px-4 py-2">
+                                                            <td class="border px-4                                                             <td class="border px-4 py-2">
                                                                 <span class="px-2 py-1 rounded-full text-xs font-semibold
                                                                     <?= $p['status_presensi'] == 'Hadir' ? 'bg-green-100 text-green-800' : 
                                                                         ($p['status_presensi'] == 'Izin' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') ?>">
@@ -294,6 +396,7 @@ if ($id_kegiatan > 0) {
                                                             </td>
                                                         </tr>
                                                     <?php 
+                                                            endif;
                                                         endwhile;
                                                     else: 
                                                     ?>
@@ -309,12 +412,6 @@ if ($id_kegiatan > 0) {
                                                 <p class="text-sm text-gray-600">
                                                     Total Peserta: <span class="font-semibold"><?= $total_peserta ?></span> orang
                                                 </p>
-                                                <button onclick="downloadPDF(<?= $row['id_kegiatan'] ?>)" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 flex items-center gap-2">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                    </svg>
-                                                    Download PDF
-                                                </button>
                                             </div>
                                             <?php endif; ?>
                                         </div>
@@ -334,7 +431,7 @@ if ($id_kegiatan > 0) {
 
     <script>
     // Auto-hide alert box after 3 seconds
-        setTimeout(() => {
+    setTimeout(() => {
         const alertBox = document.getElementById('alert-box');
         if (alertBox) {
             alertBox.style.transition = 'opacity 0.5s ease';
@@ -364,56 +461,28 @@ if ($id_kegiatan > 0) {
         });
     });
 
-    function confirmDelete() {
-        const id = event.target.href.split('=')[1];  // Ambil ID dari link
-        event.preventDefault(); // Mencegah link untuk langsung diarahkan
-
-        Swal.fire({
-            title: 'Yakin ingin menghapus?',
-            text: "Data yang dihapus tidak dapat dikembalikan!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Hapus',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = 'hapus-kegiatan.php?id=' + id;  // Arahkan ke halaman hapus setelah konfirmasi
+    // Style radio buttons
+    document.querySelectorAll('input[type="radio"][name="status_presensi"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Reset all labels
+            document.querySelectorAll('label span').forEach(span => {
+                span.classList.remove('ring-2', 'ring-offset-2');
+            });
+            
+            // Add ring to selected label
+            if (this.checked) {
+                this.nextElementSibling.classList.add('ring-2', 'ring-offset-2');
+                if (this.value === 'Hadir') {
+                    this.nextElementSibling.classList.add('ring-green-600');
+                } else if (this.value === 'Izin') {
+                    this.nextElementSibling.classList.add('ring-yellow-600');
+                } else {
+                    this.nextElementSibling.classList.add('ring-red-600');
+                }
             }
         });
-    }
-
-
-    async function downloadPDF(id) {
-        const doc = new jspdf.jsPDF();
-
-        const modal = document.querySelector(`#modal-${id}`);
-        const title = modal.querySelector('h2').innerText;
-        const dateTime = modal.querySelector('p.text-sm').innerText;
-
-        const table = modal.querySelector("table");
-        const rows = [...table.querySelectorAll("tbody tr")].map(tr => {
-            return [...tr.querySelectorAll("td")].map(td => td.innerText);
-        }).filter(row => row.length > 0 && row[1] !== 'Belum ada yang presensi.');
-
-        doc.setFontSize(16);
-        doc.text(title, 14, 15);
-        doc.setFontSize(12);
-        doc.text(dateTime, 14, 23);
-
-        doc.autoTable({
-            head: [['No', 'Nama', 'Waktu Presensi']],
-            body: rows,
-            startY: 30,
-        });
-
-        doc.save(`${title.replace(/\s+/g, '_')}_Presensi.pdf`);
-    }
-
+    });
     </script>
-
 
 </body>
 </html>

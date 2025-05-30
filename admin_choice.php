@@ -138,7 +138,7 @@ if (!isset($_SESSION['login']) || $_SESSION['role'] !== 'Admin') {
         <p class="welcome-text">Pilih dashboard yang ingin Anda akses:</p>
         
         <div class="cards-container">
-            <a href="dashboard_user.php" class="card user-card">
+            <a href="Anggota/dashboard.php" class="card user-card">
                 <div class="card-icon">👤</div>
                 <h2 class="card-title">Dashboard Anggota</h2>
                 <p class="card-description">

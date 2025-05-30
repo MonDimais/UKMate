@@ -11,7 +11,7 @@ $total_anggota = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as t
 $tanggal_hari_ini = date('Y-m-d');
 $total_presensi_hari_ini = mysqli_fetch_assoc(mysqli_query($koneksi, "
     SELECT COUNT(*) as total FROM presensi 
-    WHERE DATE(waktu_presensi) = '$tanggal_hari_ini' AND hadir = 1
+    WHERE DATE(waktu_presensi) = '$tanggal_hari_ini' AND presensi = 'Hadir'
 "))['total'];
 
 // Grafik kegiatan per bulan
@@ -29,7 +29,7 @@ $label_hari = [];
 $jumlah_presensi_harian = [];
 for ($i = 6; $i >= 0; $i--) {
     $tanggal = date('Y-m-d', strtotime("-$i days"));
-    $query = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM presensi WHERE DATE(waktu_presensi) = '$tanggal' AND hadir = 1");
+    $query = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM presensi WHERE DATE(waktu_presensi) = '$tanggal' AND presensi = 'Hadir'");
     $label_hari[] = date('D', strtotime($tanggal));
     $jumlah_presensi_harian[] = mysqli_fetch_assoc($query)['total'];
 }
@@ -57,7 +57,7 @@ $data_bulan_ini = mysqli_fetch_assoc($result_bulan_ini);
 $kegiatan_bulan_ini = $data_bulan_ini['jumlah'];
 
 // Cek jumlah pendaftar belum dikonfirmasi
-$pendaftar_belum_dikonfirmasi = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM pendaftaran"));
+$pendaftar_belum_dikonfirmasi = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM pendaftaran WHERE status = 'pending'"));
 
 // Ambil 5 kegiatan terbaru
 $kegiatan_terbaru = mysqli_query($koneksi, "SELECT * FROM kegiatan ORDER BY tanggal_kegiatan DESC LIMIT 5");
@@ -126,6 +126,12 @@ $kegiatan_terbaru = mysqli_query($koneksi, "SELECT * FROM kegiatan ORDER BY tang
                         <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded h-full flex items-center justify-between">
                             <p class="font-semibold">⚠️ Ada <?php echo $pendaftar_belum_dikonfirmasi; ?> pendaftar yang belum dikonfirmasi.</p>
                             <a href="anggota/data-anggota.php" class="text-blue-600 underline">Lihat Sekarang</a>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <div class="col-span-4">
+                        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded h-full flex items-center justify-between">
+                            <p class="font-semibold">✅ Tidak ada pendaftar yang belum dikonfirmasi.</p>
                         </div>
                     </div>
                 <?php endif; ?>

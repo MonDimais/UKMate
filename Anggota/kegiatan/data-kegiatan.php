@@ -52,15 +52,13 @@ $query2 = mysqli_query($koneksi, "
 
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin | UKM Fasilkom</title>
+    <title>Data Kegiatan | UKM Fasilkom</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="flex h-screen">
@@ -70,26 +68,6 @@ $query2 = mysqli_query($koneksi, "
 
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col sm:ml-0 md:ml-80 lg:ml-80 xl:ml-80">
-
-        <!-- Pesan notifikasi simpan ke database berhasil atau tidak -->
-        <?php if (isset($_GET['message']) && isset($_GET['type'])):
-            $type = $_GET['type'];
-            $message = htmlspecialchars($_GET['message']);
-
-            $styles = [
-                'success' => 'bg-green-100 border border-green-400 text-green-700',
-                'error'   => 'bg-red-100 border border-red-400 text-red-700',
-                'warning' => 'bg-yellow-100 border border-yellow-400 text-yellow-700',
-                'info'    => 'bg-blue-100 border border-blue-400 text-blue-700',
-            ];
-
-            $class = $styles[$type] ?? $styles['info'];
-        ?>
-        <div id="alert-box" class="fixed top-4 right-4 z-50 px-4 py-3 rounded shadow-lg <?= $class ?>">
-            <?= $message ?>
-        </div>
-        <?php endif; ?>
-
 
             <!-- Navbar -->
             <?php include '../navbar.php'; ?>
@@ -125,7 +103,6 @@ $query2 = mysqli_query($koneksi, "
                                 <button type="submit" class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">Cari</button>
                             </div>
                         </form>
-                        <a href="tambah-kegiatan.php" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 whitespace-nowrap">Tambah Kegiatan</a>
                     </div>
                 </div>
                 
@@ -149,7 +126,8 @@ $query2 = mysqli_query($koneksi, "
                                 <p class="text-gray-500 mt-1"><?= htmlspecialchars($row['lokasi']) ?></p>
                                 <p class="text-gray-500 mt-1"><strong>Status:</strong> 
                                     <span class="px-2 py-1 rounded-full text-xs font-semibold
-                                        <?= $row['status'] == 'Berlangsung' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' ?>">
+                                        <?= $row['status'] == 'Berlangsung' ? 'bg-yellow-100 text-yellow-800' : 
+                                            ($row['status'] == 'Selesai' ? 'bg-gray-100 text-gray-800' : 'bg-green-100 text-green-800') ?>">
                                         <?= htmlspecialchars($row['status']) ?>
                                     </span>
                                 </p>
@@ -158,26 +136,21 @@ $query2 = mysqli_query($koneksi, "
                             <!-- Modal -->
                             <div id="modal-<?= $row['id_kegiatan'] ?>" class="modal fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50" data-modal-id="<?= $row['id_kegiatan'] ?>">
                                 <div class="bg-white rounded-lg p-6 w-full max-w-md relative">
-                                    <button onclick="closeModal(<?= $row['id_kegiatan'] ?>)" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">&times;</button>
+                                    <button onclick="closeModal(<?= $row['id_kegiatan'] ?>)" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
                                     <h2 class="text-xl font-bold text-blue-700 mb-2"><?= htmlspecialchars($row['judul_kegiatan']) ?></h2>
                                     <p class="text-sm text-gray-600"><?= date('d M Y', strtotime($row['tanggal_kegiatan'])) ?> | <?= date('H:i', strtotime($row['waktu_kegiatan'])) ?></p>
                                     <p class="text-gray-600 mt-2"><strong>Lokasi:</strong> <?= htmlspecialchars($row['lokasi']) ?></p>
                                     <p class="text-gray-600 mt-2"><strong>Deskripsi:</strong><br><?= nl2br(htmlspecialchars($row['deskripsi'])) ?></p>
                                     <p class="text-gray-600 mt-2"><strong>Dibuat oleh:</strong> <?= htmlspecialchars($row['dibuat_oleh']) ?></p>
 
-                                    <div class="mt-4 flex items-center gap-2 justify-between">
-                                        <p class="mt-4 text-sm">
-                                            <strong>Status kegiatan:</strong> 
-                                            <span class="px-2 py-1 rounded-full text-xs font-semibold
-                                                <?= $row['status'] == 'Berlangsung' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' ?>">
-                                                <?= htmlspecialchars($row['status']) ?>
-                                            </span>
-                                        </p>
-                                        <div class="mt-4 flex justify-end gap-2">
-                                            <a href="edit-kegiatan.php?id=<?= $row['id_kegiatan'] ?>" class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Edit</a>
-                                            <a href="hapus-kegiatan.php?id=<?= $row['id_kegiatan'] ?>" onclick="return confirmDelete()" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">Hapus</a>
-                                        </div>
-                                    </div>
+                                    <p class="mt-4 text-sm">
+                                        <strong>Status kegiatan:</strong> 
+                                        <span class="px-2 py-1 rounded-full text-xs font-semibold
+                                            <?= $row['status'] == 'Berlangsung' ? 'bg-yellow-100 text-yellow-800' : 
+                                                ($row['status'] == 'Selesai' ? 'bg-gray-100 text-gray-800' : 'bg-green-100 text-green-800') ?>">
+                                            <?= htmlspecialchars($row['status']) ?>
+                                        </span>
+                                    </p>
                                 </div>
                             </div>
                         <?php endwhile; ?>
@@ -185,7 +158,6 @@ $query2 = mysqli_query($koneksi, "
                         <p class="bg-white rounded-lg shadow p-4 text-gray-500">Tidak ada kegiatan terdekat.</p>
                     <?php endif; ?>
                 </div>
-
 
                 <div class="mb-6">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -199,66 +171,56 @@ $query2 = mysqli_query($koneksi, "
                             <h3 class="text-lg font-semibold">Total Kegiatan: <?= mysqli_num_rows($query2) ?></h3>
                         </div>
                     </div>
-                <!-- Kegiatan List -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                    <?php while ($row = mysqli_fetch_assoc($query2)): ?>
-                        <div 
-                            class="cursor-pointer bg-white rounded-lg shadow p-4 hover:shadow-lg transition"
-                            onclick="openModal(<?= $row['id_kegiatan'] ?>)"
-                        >
-                            <h2 class="text-xl font-semibold text-blue-700"><?= htmlspecialchars($row['judul_kegiatan']) ?></h2>
-                            <p class="text-gray-600 mt-2"><?= date('d M Y', strtotime($row['tanggal_kegiatan'])) ?> | <?= date('H:i', strtotime($row['waktu_kegiatan'])) ?></p>
-                            <p class="text-gray-500 mt-1"><?= htmlspecialchars($row['lokasi']) ?></p>
-                            <p class="text-gray-500 mt-1"><strong>Status:</strong> 
-                                <span class="px-2 py-1 rounded-full text-xs font-semibold
-                                    <?= $row['status'] == 'Berlangsung' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' ?>">
-                                    <?= htmlspecialchars($row['status']) ?>
-                                </span>
-                            </p>
-                        </div>
+                    <!-- Kegiatan List -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                        <?php 
+                        mysqli_data_seek($query2, 0); // Reset query pointer
+                        while ($row = mysqli_fetch_assoc($query2)): 
+                        ?>
+                            <div 
+                                class="cursor-pointer bg-white rounded-lg shadow p-4 hover:shadow-lg transition"
+                                onclick="openModal(<?= $row['id_kegiatan'] ?>)"
+                            >
+                                <h2 class="text-xl font-semibold text-blue-700"><?= htmlspecialchars($row['judul_kegiatan']) ?></h2>
+                                <p class="text-gray-600 mt-2"><?= date('d M Y', strtotime($row['tanggal_kegiatan'])) ?> | <?= date('H:i', strtotime($row['waktu_kegiatan'])) ?></p>
+                                <p class="text-gray-500 mt-1"><?= htmlspecialchars($row['lokasi']) ?></p>
+                                <p class="text-gray-500 mt-1"><strong>Status:</strong> 
+                                    <span class="px-2 py-1 rounded-full text-xs font-semibold
+                                        <?= $row['status'] == 'Berlangsung' ? 'bg-yellow-100 text-yellow-800' : 
+                                            ($row['status'] == 'Selesai' ? 'bg-gray-100 text-gray-800' : 'bg-green-100 text-green-800') ?>">
+                                        <?= htmlspecialchars($row['status']) ?>
+                                    </span>
+                                </p>
+                            </div>
 
-                        <!-- Modal -->
-                        <div id="modal-<?= $row['id_kegiatan'] ?>" class="modal fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50" data-modal-id="<?= $row['id_kegiatan'] ?>">
-                            <div class="bg-white rounded-lg p-6 w-full max-w-md relative">
-                                <button onclick="closeModal(<?= $row['id_kegiatan'] ?>)" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">&times;</button>
-                                <h2 class="text-xl font-bold text-blue-700 mb-2"><?= htmlspecialchars($row['judul_kegiatan']) ?></h2>
-                                <p class="text-sm text-gray-600"><?= date('d M Y', strtotime($row['tanggal_kegiatan'])) ?> | <?= date('H:i', strtotime($row['waktu_kegiatan'])) ?></p>
-                                <p class="text-gray-600 mt-2"><strong>Lokasi:</strong> <?= htmlspecialchars($row['lokasi']) ?></p>
-                                <p class="text-gray-600 mt-2"><strong>Deskripsi:</strong><br><?= nl2br(htmlspecialchars($row['deskripsi'])) ?></p>
-                                <p class="text-gray-600 mt-2"><strong>Dibuat oleh:</strong> <?= htmlspecialchars($row['dibuat_oleh']) ?></p>
+                            <!-- Modal -->
+                            <div id="modal-<?= $row['id_kegiatan'] ?>" class="modal fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50" data-modal-id="<?= $row['id_kegiatan'] ?>">
+                                <div class="bg-white rounded-lg p-6 w-full max-w-md relative">
+                                    <button onclick="closeModal(<?= $row['id_kegiatan'] ?>)" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+                                    <h2 class="text-xl font-bold text-blue-700 mb-2"><?= htmlspecialchars($row['judul_kegiatan']) ?></h2>
+                                    <p class="text-sm text-gray-600"><?= date('d M Y', strtotime($row['tanggal_kegiatan'])) ?> | <?= date('H:i', strtotime($row['waktu_kegiatan'])) ?></p>
+                                    <p class="text-gray-600 mt-2"><strong>Lokasi:</strong> <?= htmlspecialchars($row['lokasi']) ?></p>
+                                    <p class="text-gray-600 mt-2"><strong>Deskripsi:</strong><br><?= nl2br(htmlspecialchars($row['deskripsi'])) ?></p>
+                                    <p class="text-gray-600 mt-2"><strong>Dibuat oleh:</strong> <?= htmlspecialchars($row['dibuat_oleh']) ?></p>
 
-                                <div class="mt-4 flex items-center gap-2 justify-between">
                                     <p class="mt-4 text-sm">
                                         <strong>Status kegiatan:</strong> 
                                         <span class="px-2 py-1 rounded-full text-xs font-semibold
-                                            <?= $row['status'] == 'Berlangsung' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' ?>">
+                                            <?= $row['status'] == 'Berlangsung' ? 'bg-yellow-100 text-yellow-800' : 
+                                                ($row['status'] == 'Selesai' ? 'bg-gray-100 text-gray-800' : 'bg-green-100 text-green-800') ?>">
                                             <?= htmlspecialchars($row['status']) ?>
                                         </span>
                                     </p>
-                                    <div class="mt-4 flex justify-end gap-2">
-                                        <a href="edit-kegiatan.php?id=<?= $row['id_kegiatan'] ?>" class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">Edit</a>
-                                        <a href="hapus-kegiatan.php?id=<?= $row['id_kegiatan'] ?>" onclick="return confirmDelete()" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">Hapus</a>
-                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    <?php endwhile; ?>
+                        <?php endwhile; ?>
+                    </div>
                 </div>
             </section>
         </div>
     </div>
 
     <script>
-    // Auto-hide alert box after 3 seconds
-        setTimeout(() => {
-        const alertBox = document.getElementById('alert-box');
-        if (alertBox) {
-            alertBox.style.transition = 'opacity 0.5s ease';
-            alertBox.style.opacity = '0';
-            setTimeout(() => alertBox.remove(), 500); // remove dari DOM
-        }
-    }, 3000); // 3000 ms = 3 detik
-
     function openModal(id) {
         document.getElementById(`modal-${id}`).classList.remove('hidden');
         document.body.classList.add('overflow-hidden'); // optional: lock scroll
@@ -279,29 +241,7 @@ $query2 = mysqli_query($koneksi, "
             }
         });
     });
-
-    function confirmDelete() {
-        const id = event.target.href.split('=')[1];  // Ambil ID dari link
-        event.preventDefault(); // Mencegah link untuk langsung diarahkan
-
-        Swal.fire({
-            title: 'Yakin ingin menghapus?',
-            text: "Data yang dihapus tidak dapat dikembalikan!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Hapus',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = 'hapus-kegiatan.php?id=' + id;  // Arahkan ke halaman hapus setelah konfirmasi
-            }
-        });
-    }
     </script>
-
 
 </body>
 </html>
