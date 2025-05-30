@@ -92,12 +92,13 @@ unset($_SESSION['success'], $_SESSION['error']);
       <h2 class="text-3xl font-bold text-gray-900 mb-6">Formulir Pendaftaran</h2>
 
       <?php if ($successMsg): ?>
-        <div class="bg-green-100 text-green-700 px-4 py-2 rounded mb-4"><?= htmlspecialchars($success) ?></div>
+        <div class="bg-green-100 text-green-700 px-4 py-2 rounded mb-4"><?= htmlspecialchars($successMsg) ?></div>
       <?php elseif ($error): ?>
         <div class="bg-red-100 text-red-700 px-4 py-2 rounded mb-4"><?= htmlspecialchars($error) ?></div>
       <?php endif; ?>
 
-      <form method="POST" action="auth/pendaftaran_proccess.php">
+      <!-- PERBAIKAN: Tambahkan enctype="multipart/form-data" dan perbaiki nama file action -->
+      <form method="POST" action="auth/pendaftaran_proccess.php" enctype="multipart/form-data">
         <div class="mb-4">
           <label for="nama" class="block text-sm font-medium">Nama</label>
           <input type="text" id="nama" name="nama" required class="w-full px-3 py-2 border rounded" />
@@ -132,6 +133,7 @@ unset($_SESSION['success'], $_SESSION['error']);
             <label for="foto" class="block text-sm font-medium">Foto Bukti NPM</label>
             <input type="file" id="foto" name="foto"
             class="w-full px-3 py-2 border rounded bg-white text-gray-700" accept="image/*" />
+            <small class="text-gray-500 text-xs">Format: JPG, PNG, GIF. Maksimal 5MB</small>
         </div>
 
         <button type="submit" class="w-full py-3 bg-blue-500 text-white font-bold rounded hover:bg-blue-600">Daftar</button>
