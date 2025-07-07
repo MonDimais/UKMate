@@ -3,7 +3,7 @@ function db_connect() {
     $host = 'localhost';
     $user = 'root';
     $pass = '';
-    $dbname = 'test-ukmate';
+    $dbname = 'ukmate';
 
     $conn = new mysqli($host, $user, $pass, $dbname);
 

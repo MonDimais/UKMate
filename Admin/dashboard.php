@@ -61,6 +61,13 @@ $pendaftar_belum_dikonfirmasi = mysqli_num_rows(mysqli_query($koneksi, "SELECT *
 
 // Ambil 5 kegiatan terbaru
 $kegiatan_terbaru = mysqli_query($koneksi, "SELECT * FROM kegiatan ORDER BY tanggal_kegiatan DESC LIMIT 5");
+
+// Ambil pengumuman terbaru
+$pengumuman = mysqli_query($koneksi, "
+    SELECT * FROM pengumuman 
+    ORDER BY created_at DESC 
+    LIMIT 5
+");
 ?>
 
 <!DOCTYPE html>
@@ -82,6 +89,52 @@ $kegiatan_terbaru = mysqli_query($koneksi, "SELECT * FROM kegiatan ORDER BY tang
 
         <section class="p-6 space-y-6">
             <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
+
+
+            <!-- Pengumuman -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold">Pengumuman</h2>
+                    <button 
+                        id="openModalBtn"
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                        Buat Pengumuman
+                    </button>
+                </div>
+
+                <?php if (mysqli_num_rows($pengumuman) > 0): ?>
+                    <div class="space-y-4">
+                        <?php while ($row = mysqli_fetch_assoc($pengumuman)): ?>
+                            <div class="border-l-4 border-blue-500 pl-4 py-2">
+                                <h3 class="font-semibold text-lg"><?= htmlspecialchars($row['judul']) ?></h3>
+                                <p class="text-gray-600 mt-1"><?= nl2br(htmlspecialchars($row['konten'])) ?></p>
+                                <p class="text-sm text-gray-400 mt-2"><?= date('d M Y H:i', strtotime($row['created_at'])) ?></p>
+                            </div>
+                        <?php endwhile; ?>
+                    </div>
+                <?php else: ?>
+                    <p class="text-gray-500">Belum ada pengumuman.</p>
+                <?php endif; ?>
+            </div>
+
+            <!-- Modal Popup -->
+            <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+                <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+                    <button id="closeModalBtn" class="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-xl font-bold">&times;</button>
+                    <h3 class="text-xl font-bold mb-4">Buat Pengumuman Baru</h3>
+                    <form action="proses_buat_pengumuman.php" method="post">
+                        <label for="judul" class="block mb-1 font-semibold">Judul</label>
+                        <input type="text" name="judul" id="judul" required class="w-full border rounded px-3 py-2 mb-4">
+
+                        <label for="konten" class="block mb-1 font-semibold">Konten</label>
+                        <textarea name="konten" id="konten" rows="4" required class="w-full border rounded px-3 py-2 mb-4"></textarea>
+
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                            Simpan Pengumuman
+                        </button>
+                    </form>
+                </div>
+            </div>
 
             <!-- Info Kegiatan -->
             <div class="grid grid-cols-1 gap-6">
@@ -154,6 +207,25 @@ $kegiatan_terbaru = mysqli_query($koneksi, "SELECT * FROM kegiatan ORDER BY tang
 </div>
 
 <script>
+
+// Buka modal
+document.getElementById('openModalBtn').addEventListener('click', function() {
+    document.getElementById('modal').classList.remove('hidden');
+});
+
+// Tutup modal
+document.getElementById('closeModalBtn').addEventListener('click', function() {
+    document.getElementById('modal').classList.add('hidden');
+});
+
+// Tutup modal ketika klik di luar konten modal
+window.addEventListener('click', function(e) {
+    const modal = document.getElementById('modal');
+    if (e.target === modal) {
+        modal.classList.add('hidden');
+    }
+});
+
 const ctxKegiatan = document.getElementById('kegiatanChart').getContext('2d');
 const ctxPresensi = document.getElementById('presensiChart').getContext('2d');
 

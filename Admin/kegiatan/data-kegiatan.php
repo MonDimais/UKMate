@@ -27,7 +27,7 @@ mysqli_query($koneksi, "
 $query1 = mysqli_query($koneksi, "
     SELECT * FROM kegiatan
     WHERE 
-        CONCAT(tanggal_kegiatan, ' ', waktu_kegiatan) <= NOW()
+        CONCAT(tanggal_kegiatan, ' ', waktu_kegiatan)
         AND DATE_ADD(CONCAT(tanggal_kegiatan, ' ', waktu_kegiatan), INTERVAL 2 HOUR) > NOW()
     ORDER BY tanggal_kegiatan ASC, waktu_kegiatan ASC
     LIMIT 2;

@@ -11,16 +11,13 @@ if (isset($_POST['submit'])) {
     $lokasi =  $_POST['lokasi'];
     $deskripsi =  $_POST['deskripsi'];
     $status = $_POST['status'];
-    $dibuat_oleh = 'Seno'; // Ambil nama akun dari session
-
+    
         // Ambil nama akun dari session
-    // if (isset($_SESSION['nama'])) {
-    //     $dibuat_oleh = mysqli_real_escape_string($koneksi, $_SESSION['nama']);
-    // } else {
-    //     $message = urlencode("Session tidak ditemukan. Silakan login.");
-    //     header("Location: login.php?message=$message&type=error");
-    //     exit;
-    // }
+    if (isset($_SESSION['username']) && !empty($_SESSION['username'])) {
+        $dibuat_oleh = $_SESSION['username'];
+    } else {
+        $dibuat_oleh = 'Admin'; // Default jika session tidak ada
+    }
 
     // Query update data ke tabel kegiatan
     $query = mysqli_query($koneksi, "UPDATE kegiatan SET

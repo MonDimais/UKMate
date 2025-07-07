@@ -75,11 +75,11 @@ unset($_SESSION['login_error']);
       
       <!-- Background image slideshow -->
       <div class="background-slideshow">
-        <img src="bg-images/bg-1.jpg" alt="bg1">
-        <img src="bg-images/bg-2.jpg" alt="bg2">
-        <img src="bg-images/bg-3.jpg" alt="bg3">
-        <img src="bg-images/bg-4.jpg" alt="bg4">
-        <img src="bg-images/bg-5.jpg" alt="bg5">
+        <img src="bg-images/bg-1..jpg" alt="bg-1">
+        <img src="bg-images/bg-2.jpg" alt="bg-1">
+        <img src="bg-images/bg-3.jpg" alt="bg-1">
+        <img src="bg-images/bg-4.jpg" alt="bg-1">
+        <img src="bg-images/bg-5.jpg" alt="bg-1">
       </div>
 
       <!-- Foreground content -->

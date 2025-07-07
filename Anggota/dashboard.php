@@ -65,14 +65,6 @@ $pendaftar_belum_dikonfirmasi = mysqli_num_rows(mysqli_query($koneksi, "SELECT *
         <section class="p-6 space-y-6">
             <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
 
-            <!-- Notifikasi Pendaftar -->
-            <?php if ($pendaftar_belum_dikonfirmasi > 0): ?>
-                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded mb-6">
-                    <p class="font-semibold">⚠️ Ada <?php echo $pendaftar_belum_dikonfirmasi; ?> pendaftar yang belum dikonfirmasi.</p>
-                    <a href="anggota/data-anggota.php" class="text-blue-600 underline">Lihat Sekarang</a>
-                </div>
-            <?php endif; ?>
-
             <!-- Info Kegiatan -->
             <div class="grid grid-cols-1 gap-6">
                 <h2 class="text-2xl font-bold mb-2">Info Kegiatan</h2>

@@ -122,7 +122,7 @@ $total_anggota = mysqli_num_rows($query_result);
                     </div>
                 </div>
 
-                <div class="mb-6">
+                <div class="">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                         <!-- Anggota -->
                         <div class="mb-4">

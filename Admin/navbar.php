@@ -123,7 +123,7 @@ $settingsPath = getCorrectPath('settings.php');
             <div class="px-4 py-3 text-sm text-gray-700 space-y-2 border-t border-gray-200">
                 <div class="flex items-center">
                     <i class="fas fa-id-card mr-2 w-4 text-gray-400"></i>
-                    <span class="text-gray-600">NIM:</span>
+                    <span class="text-gray-600">NPM:</span>
                     <span class="ml-auto font-medium"><?= htmlspecialchars($user_nim) ?></span>
                 </div>
                 <div class="flex items-center">

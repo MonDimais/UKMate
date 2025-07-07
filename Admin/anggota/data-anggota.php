@@ -49,6 +49,14 @@ if (!$query_result) {
 
 // Hitung total untuk ditampilkan
 $total_anggota = mysqli_num_rows($query_result);
+
+
+// Query untuk menghitung total anggota
+$query_count = "SELECT COUNT(*) AS total FROM anggota";
+$count_result = mysqli_query($koneksi, $query_count);
+$count_data = mysqli_fetch_assoc($count_result);
+$total_anggota = $count_data['total'];
+
 ?>
 
 
@@ -110,7 +118,7 @@ $total_anggota = mysqli_num_rows($query_result);
                         <form method="GET" class="flex flex-wrap md:flex-nowrap gap-3 w-full">
                             <!-- Search Nama -->
                             <div class="flex items-center gap-2 w-full md:w-80">
-                                <input type="text" name="cari" placeholder="Cari Kegiatan..." value="<?= isset($_GET['cari']) ? htmlspecialchars($_GET['cari']) : '' ?>" class="border p-2 rounded w-full">
+                                <input type="text" name="cari" placeholder="Cari Anggota..." value="<?= isset($_GET['cari']) ? htmlspecialchars($_GET['cari']) : '' ?>" class="border p-2 rounded w-full">
                                 <button type="submit" class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">Cari</button>
                             </div>
 
@@ -209,15 +217,8 @@ $total_anggota = mysqli_num_rows($query_result);
                         </div>
                         <!-- Anggota Count -->
                         <div class="mb-4">
-                            <h3 class="text-lg font-semibold">Total Anggota: 
-                            <?php 
-                                if ($query && !is_string($query)) {
-                                    echo mysqli_num_rows($query);
-                                } else {
-                                    echo "0";
-                                }
-                            ?>
-                            </h3>
+                            <p class="text-lg font-semibold text-primary">Total Anggota : <?php echo $total_anggota; ?></p>
+
                         </div>
                     </div>
                 </div>
@@ -318,7 +319,7 @@ $total_anggota = mysqli_num_rows($query_result);
             <p><strong>Nama:</strong> ${data.nama}</p>
             <p><strong>NPM:</strong> ${data.npm}</p>
             <p><strong>Prodi:</strong> ${data.prodi}</p>
-            <p><strong>Bukti NPM:</strong><br><img src="uploads/bukti_npm/${data.bukti_npm}" alt="${data.bukti_npm}" class="w-full mt-2 rounded shadow"></p>
+            <p><strong>Bukti NPM:</strong><br><img src="../../uploads/${data.bukti_npm}" alt="${data.bukti_npm}" class="w-full mt-2 rounded shadow"></p>
         `;
         document.getElementById('detailContent').innerHTML = content;
         document.getElementById('detailModal').classList.remove('hidden');
