@@ -1,5 +1,5 @@
-Project Description
-- This project is a management information system web application for the Student Activity Unit (UKM) of the Faculty of Computer Science. This system is designed to facilitate the management of member data, activities, and organization administration in a digital and integrated manner.
+# Project Description\
+This project is a management information system web application for the Student Activity Unit (UKM) of the Faculty of Computer Science. This system is designed to facilitate the management of member data, activities, and organization administration in a digital and integrated manner.
 
 📚 Academic Context
 - Developed as the final exam project of the Web Programming course
@@ -13,7 +13,7 @@ Project Description
 - Architecture: MVC (Model-View-Controller) pattern
 - Responsive Design: Mobile-friendly interface
 
-**UI/UX Display**
+## **UI/UX Display**
 
 - **Login Page**
 ![login-page](readme-images/login.png)
@@ -21,5 +21,29 @@ Project Description
 - **Register Page**
 ![register-page](readme-images/register.png)
 
-- **Login Choice**
+- **Login Choice (if the account is admin)**
 ![login-choice](readme-images/login-choice.png)
+
+- **Dashboard Page (User)**
+![dashboard](readme-images/dashboard-user.png)
+
+- **Activity Page (User)**
+![activity](readme-images/kegiatan-user.png)
+
+- **Members Page (User)**
+![members](readme-images/anggota-user.png)
+
+- **Attendance Page (User)**
+![attendance](readme-images/presensi-user.png)
+
+- **Dashboard Page (Admin)**
+![dashboard](readme-images/dashboard-admin.png)
+
+- **Activity Page (Admin)**
+![activity](readme-images/kegiatan-admin.png)
+
+- **Members Page (Admin)**
+![members](readme-images/anggota-admin.png)
+
+- **Attendance Page (Admin)**
+![attendance](readme-images/presensi-admin.png)
