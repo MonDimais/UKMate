@@ -1,4 +1,4 @@
-# Project Description\
+# Project Description
 This project is a management information system web application for the Student Activity Unit (UKM) of the Faculty of Computer Science. This system is designed to facilitate the management of member data, activities, and organization administration in a digital and integrated manner.
 
 📚 Academic Context
